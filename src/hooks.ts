@@ -13,7 +13,7 @@ interface HookFetchOneResult<T> {
 
 export function useFetchOneRow<T>(
   tableName: string,
-  query: Record<string, any>,
+  query: Record<string, any> = {},
   dependencies: any[] = []
 ): HookFetchOneResult<T> {
   const [row, setRow] = useState<T | null>(null);
@@ -23,7 +23,7 @@ export function useFetchOneRow<T>(
       (row) => setRow(row),
       (err) => setError(err.message)
     );
-  }, [tableName, query, ...dependencies]);
+  }, [...dependencies]);
 
   return { row, error };
 }
@@ -40,6 +40,6 @@ export function useFetchRows<T>(
       (rows) => setRows(rows),
       (err) => setError(err.message)
     );
-  }, [tableName, query, ...dependencies]);
+  }, [...dependencies]);
   return { rows, error };
 }
