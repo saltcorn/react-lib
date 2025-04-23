@@ -27,7 +27,7 @@ export function useFetchOneRow<T>(
     fetchOneRow<T>(tableName, query)
       .then(
         (row) => setRow(row),
-        (err) => setError(err.message)
+        (err) => setError(err?.message || "Unknown error")
       )
       .catch((err) => {
         setError(err?.message || "Unknown error");
@@ -53,10 +53,10 @@ export function useFetchRows<T>(
     fetchRows<T>(tableName, query)
       .then(
         (rows) => setRows(rows),
-        (err) => setError(err.message)
+        (err) => setError(err?.message || "Unknown error")
       )
       .catch((err) => {
-        setError(err.message);
+        setError(err?.message || "Unknown error");
         setRows([]);
       })
       .finally(() => setIsLoading(false));
