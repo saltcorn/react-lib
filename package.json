@@ -20,7 +20,8 @@
   "exports": {
     ".": "./dist/index.js",
     "./hooks": "./dist/hooks.js",
-    "./api": "./dist/api.js"
+    "./api": "./dist/api.js",
+    "./components": "./dist/components/index.js"
   },
   "devDependencies": {
     "@types/axios": "^0.14.4",
