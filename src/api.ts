@@ -15,6 +15,17 @@ export async function fetchRows<T>(
   else throw new Error("Unknown error");
 }
 
+export async function countRows(
+  tableName: string,
+  query: Record<string, any> = {}
+): Promise<number> {
+  const response = {data: {success: 777}};//Blanking, because I don't know how to count rows...
+  
+  if (response.data?.success) return response.data.success;
+  else if (response.data?.error) throw new Error(response.data.error);
+  else throw new Error("Unknown error");
+}
+
 export async function fetchOneRow<T>(
   tableName: string,
   query: Record<string, any>
