@@ -34,7 +34,7 @@ export default function ScView({
         })
         .catch((error) => {
           console.error("Error loading content:", error);
-          setError(error.message || "Unknown error");
+          setError(error?.response?.data?.error || error.message || "Unknown error");
           return null;
         })
         .finally(() => {
@@ -47,7 +47,7 @@ export default function ScView({
           if (data) setContent(data);
         } catch (error: any) {
           console.error("Error setting content:", error);
-          setError(error.message || "Unknown error");
+          setError(error?.response?.data?.error || error.message || "Unknown error");
         }
       };
       load();
