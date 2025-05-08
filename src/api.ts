@@ -107,3 +107,19 @@ export async function deleteRow(
     }
   }
 }
+
+export async function loadScView(
+  viewName: string,
+  query: Record<string, any> = {}
+): Promise<string> {
+  const response = await axios.get(`/view/${viewName}`, {
+    headers: {
+      "X-CSRF-Token": (window as any)._sc_globalCsrf,
+      "X-Requested-With": "XMLHttpRequest",
+    },
+    params: query,
+  });
+  if (response.status === 200) return response.data;
+  else if (response.data?.error) throw new Error(response.data.error);
+  else throw new Error("Unknown error");
+}
