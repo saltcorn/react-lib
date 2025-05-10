@@ -116,6 +116,7 @@ export async function loadScView(
     headers: {
       "X-CSRF-Token": (window as any)._sc_globalCsrf,
       "X-Requested-With": "XMLHttpRequest",
+      "X-Saltcorn-Client": "react-view",
     },
     params: query,
   });
