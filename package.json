@@ -1,7 +1,7 @@
 {
   "name": "@saltcorn/react-lib",
-  "version": "0.0.1-beta.3",
-  "description": "hooks for Saltcorn React components",
+  "version": "0.0.1-beta.4",
+  "description": "Helpers for Saltcorn React components",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,7 +16,7 @@
   },
   "author": "Christian Hugo",
   "license": "MIT",
-  "repository": "github:saltcorn/react-hooks",
+  "repository": "github:saltcorn/react-lib",
   "exports": {
     ".": "./dist/index.js",
     "./hooks": "./dist/hooks.js",
