@@ -136,20 +136,24 @@ export async function runAction(
   action: string,
   row: Record<string, any> = {}
 ): Promise<any> {
-  const response = await axios.post(
-    `/api/action/${encodeURIComponent(action)}`,
-    row,
-    {
-      headers: {
-        "X-CSRF-Token": window._sc_globalCsrf,
-        "X-Requested-With": "XMLHttpRequest",
-        "X-Saltcorn-Client": "react-view",
-      },
-    }
-  );
-  await window.common_done(response.data?.data || {});
-  if (response.data?.success) {
-    return response.data.data || response.data.success;
-  } else if (response.data?.error) throw new Error(response.data.error);
-  else throw new Error("Unknown error");
+  try {
+    const response = await axios.post(
+      `/api/action/${encodeURIComponent(action)}`,
+      row,
+      {
+        headers: {
+          "X-CSRF-Token": window._sc_globalCsrf,
+          "X-Requested-With": "XMLHttpRequest",
+          "X-Saltcorn-Client": "react-view",
+        },
+      }
+    );
+    await window.common_done(response.data?.data || {});
+    if (response.data?.success)
+      return response.data.data || response.data.success;
+    else throw new Error(response.data?.error || "Unknown error");
+  } catch (error: any) {
+    await window.common_done(error.response?.data || {});
+    throw error;
+  }
 }
