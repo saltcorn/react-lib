@@ -1,12 +1,19 @@
 import axios, { AxiosError } from "axios";
 
+declare global {
+  interface Window {
+    common_done: (data: any) => Promise<void>;
+    _sc_globalCsrf: string;
+  }
+}
+
 export async function fetchRows<T>(
   tableName: string,
   query: Record<string, any> = {}
 ): Promise<T[]> {
   const response = await axios.get(`/api/${tableName}`, {
     headers: {
-      "X-CSRF-Token": (window as any)._sc_globalCsrf,
+      "X-CSRF-Token": window._sc_globalCsrf,
     },
     params: query,
   });
@@ -21,7 +28,7 @@ export async function fetchOneRow<T>(
 ): Promise<T | null> {
   const response = await axios.get(`/api/${tableName}`, {
     headers: {
-      "X-CSRF-Token": (window as any)._sc_globalCsrf,
+      "X-CSRF-Token": window._sc_globalCsrf,
     },
     params: query,
   });
@@ -39,7 +46,7 @@ export async function insertRow(
   try {
     const response = await axios.post(`/api/${tableName}`, data, {
       headers: {
-        "X-CSRF-Token": (window as any)._sc_globalCsrf,
+        "X-CSRF-Token": window._sc_globalCsrf,
       },
     });
     if (response.data?.success) return true;
@@ -65,7 +72,7 @@ export async function updateRow(
   try {
     const response = await axios.post(`/api/${tableName}/${id}`, data, {
       headers: {
-        "X-CSRF-Token": (window as any)._sc_globalCsrf,
+        "X-CSRF-Token": window._sc_globalCsrf,
       },
     });
     if (response.data?.success) return true;
@@ -90,7 +97,7 @@ export async function deleteRow(
   try {
     const response = await axios.delete(`/api/${tableName}/${id}`, {
       headers: {
-        "X-CSRF-Token": (window as any)._sc_globalCsrf,
+        "X-CSRF-Token": window._sc_globalCsrf,
       },
     });
     if (response.data?.success) return true;
@@ -114,7 +121,7 @@ export async function loadScView(
 ): Promise<string> {
   const response = await axios.get(`/view/${viewName}`, {
     headers: {
-      "X-CSRF-Token": (window as any)._sc_globalCsrf,
+      "X-CSRF-Token": window._sc_globalCsrf,
       "X-Requested-With": "XMLHttpRequest",
       "X-Saltcorn-Client": "react-view",
     },
@@ -123,4 +130,30 @@ export async function loadScView(
   if (response.status === 200) return response.data;
   else if (response.data?.error) throw new Error(response.data.error);
   else throw new Error("Unknown error");
+}
+
+export async function runAction(
+  action: string,
+  row: Record<string, any> = {}
+): Promise<any> {
+  try {
+    const response = await axios.post(
+      `/api/action/${encodeURIComponent(action)}`,
+      row,
+      {
+        headers: {
+          "X-CSRF-Token": window._sc_globalCsrf,
+          "X-Requested-With": "XMLHttpRequest",
+          "X-Saltcorn-Client": "react-view",
+        },
+      }
+    );
+    await window.common_done(response.data?.data || {});
+    if (response.data?.success)
+      return response.data.data || response.data.success;
+    else throw new Error(response.data?.error || "Unknown error");
+  } catch (error: any) {
+    await window.common_done(error.response?.data || {});
+    throw error;
+  }
 }
