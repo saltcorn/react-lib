@@ -1,5 +1,3 @@
-import axios, { AxiosError } from "axios";
-
 declare global {
   interface Window {
     common_done: (data: any) => Promise<void>;
@@ -7,35 +5,52 @@ declare global {
   }
 }
 
+function buildQuery(query: Record<string, any>): string {
+  const params = new URLSearchParams();
+  for (const key in query) {
+    if (query[key] !== undefined) {
+      params.append(key, query[key]);
+    }
+  }
+  return params.toString();
+}
+
 export async function fetchRows<T>(
   tableName: string,
   query: Record<string, any> = {}
 ): Promise<T[]> {
-  const response = await axios.get(`/api/${tableName}`, {
-    headers: {
-      "X-CSRF-Token": window._sc_globalCsrf,
-    },
-    params: query,
-  });
-  if (response.data?.success) return response.data.success;
-  else if (response.data?.error) throw new Error(response.data.error);
-  else throw new Error("Unknown error");
+  const queryString = buildQuery(query);
+  const res = await fetch(
+    `/api/${encodeURIComponent(tableName)}?${queryString}`,
+    {
+      headers: {
+        "X-CSRF-Token": window._sc_globalCsrf,
+      },
+    }
+  );
+  const data = await res.json();
+  if (data?.success) return data.success;
+  if (data?.error) throw new Error(data.error);
+  throw new Error("Unknown error");  
 }
 
 export async function fetchOneRow<T>(
   tableName: string,
   query: Record<string, any>
 ): Promise<T | null> {
-  const response = await axios.get(`/api/${tableName}`, {
-    headers: {
-      "X-CSRF-Token": window._sc_globalCsrf,
-    },
-    params: query,
-  });
-  if (response.data?.success) {
-    if (response.data.success.length > 0) return response.data.success[0];
-    else return null;
-  } else if (response.data?.error) throw new Error(response.data.error);
+  const queryString = buildQuery(query);
+  const res = await fetch(
+    `/api/${encodeURIComponent(tableName)}?${queryString}`,
+    {
+      headers: {
+        "X-CSRF-Token": window._sc_globalCsrf,
+      },
+    }
+  );
+  const data = await res.json();
+  if (data?.success) {
+    return data.success.length > 0 ? data.success[0] : null;
+  } else if (data?.error) throw new Error(data.error);
   else throw new Error("Unknown error");
 }
 
@@ -44,74 +59,69 @@ export async function insertRow(
   data: any
 ): Promise<string | boolean> {
   try {
-    const response = await axios.post(`/api/${tableName}`, data, {
+    const res = await fetch(`/api/${encodeURIComponent(tableName)}`, {
+      method: "POST",
       headers: {
+        "Content-Type": "application/json",
         "X-CSRF-Token": window._sc_globalCsrf,
       },
+      body: JSON.stringify(data),
     });
-    if (response.data?.success) return true;
-    else
-      return typeof response.data?.error === "string"
-        ? response.data.error
-        : "Unknown error";
-  } catch (error) {
-    const axiosError = error as AxiosError;
-    if (axiosError.response?.status === 401) {
-      return "Unauthorized";
-    } else {
+    const json = await res.json();
+    if (json?.success) return true;
+    return typeof json?.error === "string" ? json.error : "Unknown error";
+  } catch (error: any) {
+    if (error instanceof TypeError || error.message === "Failed to fetch") {
       return "Unknown error";
     }
+    return "Unknown error";
   }
 }
 
 export async function updateRow(
   tableName: string,
-  id: number,
+  id: number | string,
   data: any
 ): Promise<string | boolean> {
   try {
-    const response = await axios.post(`/api/${tableName}/${id}`, data, {
+    const res = await fetch(`/api/${encodeURIComponent(tableName)}/${id}`, {
+      method: "POST",
       headers: {
+        "Content-Type": "application/json",
         "X-CSRF-Token": window._sc_globalCsrf,
       },
+      body: JSON.stringify(data),
     });
-    if (response.data?.success) return true;
-    else
-      return typeof response.data?.error === "string"
-        ? response.data.error
-        : "Unknown error";
-  } catch (error) {
-    const axiosError = error as AxiosError;
-    if (axiosError.response?.status === 401) {
-      return "Unauthorized";
-    } else {
+    const json = await res.json();
+    if (json?.success) return true;
+    return typeof json?.error === "string" ? json.error : "Unknown error";
+  } catch (error: any) {
+    if (error instanceof TypeError || error.message === "Failed to fetch") {
       return "Unknown error";
     }
+    return "Unknown error";
   }
 }
 
 export async function deleteRow(
   tableName: string,
-  id: number
+  id: number | string
 ): Promise<boolean | string> {
   try {
-    const response = await axios.delete(`/api/${tableName}/${id}`, {
+    const res = await fetch(`/api/${encodeURIComponent(tableName)}/${id}`, {
+      method: "DELETE",
       headers: {
         "X-CSRF-Token": window._sc_globalCsrf,
       },
     });
-    if (response.data?.success) return true;
-    else
-      return typeof response.data?.error === "string"
-        ? response.data.error
-        : "Unknown error";
-  } catch (error) {
-    const axiosError = error as AxiosError;
-    if (axiosError.response?.status === 401) {
-      return "Unauthorized";
-    } else {
+    const json = await res.json();
+    if (json?.success) return true;
+    return typeof json?.error === "string" ? json.error : "Unknown error";
+  } catch (error: any) {
+    if (error instanceof TypeError || error.message === "Failed to fetch") {
       return "Unknown error";
     }
+    return "Unknown error";
   }
 }
 
@@ -119,17 +129,21 @@ export async function loadScView(
   viewName: string,
   query: Record<string, any> = {}
 ): Promise<string> {
-  const response = await axios.get(`/view/${viewName}`, {
-    headers: {
-      "X-CSRF-Token": window._sc_globalCsrf,
-      "X-Requested-With": "XMLHttpRequest",
-      "X-Saltcorn-Client": "react-view",
-    },
-    params: query,
-  });
-  if (response.status === 200) return response.data;
-  else if (response.data?.error) throw new Error(response.data.error);
-  else throw new Error("Unknown error");
+  const queryString = buildQuery(query);
+  const res = await fetch(
+    `/view/${encodeURIComponent(viewName)}?${queryString}`,
+    {
+      headers: {
+        "X-CSRF-Token": window._sc_globalCsrf,
+        "X-Requested-With": "XMLHttpRequest",
+        "X-Saltcorn-Client": "react-view",
+      },
+    }
+  );
+  if (res.status === 200) return await res.text();
+  const json = await res.json().catch(() => ({}));
+  if (json?.error) throw new Error(json.error);
+  throw new Error("Unknown error");
 }
 
 export async function runAction(
@@ -137,23 +151,22 @@ export async function runAction(
   row: Record<string, any> = {}
 ): Promise<any> {
   try {
-    const response = await axios.post(
-      `/api/action/${encodeURIComponent(action)}`,
-      row,
-      {
-        headers: {
-          "X-CSRF-Token": window._sc_globalCsrf,
-          "X-Requested-With": "XMLHttpRequest",
-          "X-Saltcorn-Client": "react-view",
-        },
-      }
-    );
-    await window.common_done(response.data?.data || {});
-    if (response.data?.success)
-      return response.data.data || response.data.success;
-    else throw new Error(response.data?.error || "Unknown error");
+    const res = await fetch(`/api/action/${encodeURIComponent(action)}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": window._sc_globalCsrf,
+        "X-Requested-With": "XMLHttpRequest",
+        "X-Saltcorn-Client": "react-view",
+      },
+      body: JSON.stringify(row),
+    });
+    const data = await res.json();
+    await window.common_done(data?.data || {});
+    if (data?.success) return data.data || data.success;
+    throw new Error(data?.error || "Unknown error");
   } catch (error: any) {
-    await window.common_done(error.response?.data || {});
+    await window.common_done(error?.response?.data || {});
     throw error;
   }
 }
