@@ -1,0 +1,12 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "out": "docs",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "tsconfig": "tsconfig.json",
+  "plugin": [],
+  "readme": "none",
+  "name": "@saltcorn/react-lib"
+}
