@@ -19,11 +19,15 @@ export async function countRows(
   tableName: string,
   query: Record<string, any> = {}
 ): Promise<number> {
-  const response = {data: {success: 777}};//Blanking, because I don't know how to count rows...
+  const data = await webOrMobileCall(
+    `/api/${encodeURIComponent(tableName)}/count`,
+    query,
+    "GET"
+  );
   
-  if (response.data?.success) return response.data.success;
-  else if (response.data?.error) throw new Error(response.data.error);
-  else throw new Error("Unknown error");
+  if (data?.success) return data.success;
+  if (data?.error) throw new Error(data.error);
+  throw new Error("Unknown error");
 }
 
 export async function fetchOneRow<T>(
