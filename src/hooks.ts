@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { fetchOneRow, fetchRows } from "./api.js";
+import { fetchOneRow, fetchRows, countRows } from "./api.js";
 
 interface HookFetchResult<T> {
   rows: T[];
