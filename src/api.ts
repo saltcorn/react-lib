@@ -63,6 +63,21 @@ export async function fetchRows<T>(
   throw new Error("Unknown error");
 }
 
+export async function countRows(
+  tableName: string,
+  query: Record<string, any> = {}
+): Promise<number> {
+  const data = await webOrMobileCall(
+    `/api/${encodeURIComponent(tableName)}/count`,
+    query,
+    "GET"
+  );
+  
+  if (data?.success) return data.success;
+  if (data?.error) throw new Error(data.error);
+  throw new Error("Unknown error");
+}
+
 export async function fetchOneRow<T>(
   tableName: string,
   query: Record<string, any>
